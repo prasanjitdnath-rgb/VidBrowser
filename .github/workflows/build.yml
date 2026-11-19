@@ -11,33 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-
-      # The ubuntu-latest runner already ships the Android SDK (ANDROID_HOME),
-      # so android-actions/setup-android is not needed (it broke on cmdline-tools 16.0).
-      - name: Accept Android SDK licenses
-        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
-
-      - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: 8.7
-
-      - name: Build release APK
-        run: gradle assembleRelease --no-daemon
-
-      - name: Rename APK
-        run: mv app/build/outputs/apk/release/*.apk VidBrowser.apk
-
+        with: { distribution: temurin, java-version: 17 }
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v3
+        with: { gradle-version: 8.7 }
+      - run: gradle assembleRelease --no-daemon
+      - run: mv app/build/outputs/apk/release/*.apk VidBrowser.apk
       - uses: actions/upload-artifact@v4
-        with:
-          name: VidBrowser-apk
-          path: VidBrowser.apk
-
+        with: { name: VidBrowser-apk, path: VidBrowser.apk }
       - if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
-        with:
-          files: VidBrowser.apk
+        with: { files: VidBrowser.apk }
